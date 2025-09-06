@@ -6,8 +6,8 @@
 \usepackage{soul}
 
 \title{Evolución de Redes de Flujo Adaptativas}
-\author{}
-\date{}
+\author{Luca Bozzi M.}
+\date{Agosto 2025}
 
 \begin{document}
 
@@ -26,8 +26,8 @@ El modelo tratado acá es una simplificación puramente topológica, la red no e
 Por simplicidad, los únicos nodos que pueden realizar acciones son las puntas, es decir, los nodos de conectividad 1 excepto el sumidero. Estas puntas pueden:
 
 \begin{itemize}
-    \item Retraerse ($l_{ij}$ se reduce de $l_0 \eta (t)$, si baja de 0 el nodo desaparece) con probabilidad $p_0$
-    \item Crecer ($l_{ij}$ crece de $l_0\eta (t)$) con probabilidad $p_1$
+    \item Retraerse ($l_{ij}$ se reduce de $l_0 \eta_t$\footnote{$\eta_t$ es un ruido gaussiano con desviación estándar 1/3 y promedio 1, truncado en 0 y $l_0$ es un largo característico, parámetro de la simulación.}, si baja de $l_0/2$ el nodo desaparece) con probabilidad $p_0$
+    \item Crecer ($l_{ij}$ crece de $l_0\eta_t$) con probabilidad $p_1$
     \item Bifurcarse (nacen 2 nodos/ductos nuevos) con probabilidad $p_2$
 \end{itemize} 
 
@@ -52,13 +52,13 @@ Vemos que si la retracción domina, el sistema muere casi inmediatamente. Mientr
 
 Anteriormente, el flujo no tenía ningún efecto sobre el sistema. Ahora, este debe optimizarse para minimizar la perdida de energía y mantener un volumen constante, dado por $\mathcal{K}$.
 
-Entonces, cada ducto $ij$ tiene asociada una conductancia: $C_{ij} = \frac{\pi r_{ij}^4}{8\mu l_{ij}}$. Calculamos también el flujo del fluido $Q_{ij}$ en cada ducto propagando el flujo entrante de las puntas. Entonces, la conductancia óptima es:
+Entonces, cada ducto $ij$ tiene asociada una conductancia: $C_{ij} = \frac{\pi r_{ij}^4}{8\mu l_{ij}}$. Calculamos también el flujo del fluido $Q_{ij}$ en cada ducto propagando el flujo entrante de las puntas. La conductancia óptima está dada por:
 
 $$ C_{ij}^* = \frac{\langle Q_{ij}(t)^2\rangle_T^{2/3} \mathcal{K}}{\left( \sum_{<ij>} \langle Q_{ij}(t)^2\rangle_T^{1/3} l_{ij}\right)^2 l_{ij}} $$
 
-En cada iteración, optimizamos las conductancias de toda la red.
+En cada iteración, optimizamos las conductancias de toda la red luego de que esta evolucione.
 
-Estudiamos el decaimiento de la conductancia promedio de las puntas con $\mathcal{K}=100$, $p_0 = 0.1$, $p_1 = 0.7$, $p_2 = 0.2$ (Fig. \ref{fig:evolucion_conductancia_proba}).
+Estudiamos el decaimiento de la conductancia promedio de las puntas con $\mathcal{K}=100$, $p_0 = 0.1$, $p_1 = 0.7$, $p_2 = 0.2$ (Fig. \ref{fig:evolucion_conductancia_proba})\footnote{Esto es sólo un ejemplo, pero para otros parámetros la evolución es similar.}.
 
 \begin{figure}[h!]
     \centering
@@ -96,7 +96,7 @@ Ahora introducimos las leyes de crecimiento que nos interesan. La probabilidad d
     \item $p_1(C_{ij}) = p_2(C_{ij}) = \dfrac{1 - e^{-C_{ij}/\bar{C}}}{2}$
 \end{itemize}
 
-Introducimos una conductancia crítica $\bar{C}$, generalmente pequeña. De esta forma, un ducto con alta conductancia tiende a crecer o bifurcarse, mientras que uno con baja conductancia se retrae. Por cómo se calcula la conductancia óptima, un ducto con alto flujo tiende a crecer, o "explorar", pero está limitado por su largo que disminuye la conductancia.
+Introducimos una conductancia crítica $\bar{C}$. De esta forma, un ducto con alta conductancia (respecto a $\bar C$) tiende a crecer o bifurcarse, mientras que uno con baja conductancia se retrae. Por cómo se calcula la conductancia óptima, un ducto con alto flujo tiende a crecer, o "explorar", pero está limitado por su largo que disminuye la conductancia.
 
 \subsection{Tiempo de Gillespie}
 
@@ -108,7 +108,7 @@ Donde $r$ es un número aleatorio en $(0,1]$.
 
 \subsection{Elección del nodo}
 
-Hasta ahora, la elección del nodo se realizaba aleatoriamente y luego se escogía la acción según las probabilidades. Sin embargo, puesto que las probabilidades son diferentes para cada punta, tiene más sentido combinar estas dos elecciones para así elegir el evento \{nodo, acción\} más probable.
+Hasta ahora, la elección del nodo se realizaba aleatoriamente y luego se escogía la acción según las probabilidades. Sin embargo, puesto que las probabilidades son diferentes para cada punta, tiene más sentido combinar estas dos elecciones para así elegir el evento \{nodo, acción\} ponderado por su probabilidad.
 
 Por lo tanto, en cada iteración se generan todas las probabilidades de todas las puntas, y luego se elige entre estas de acuerdo a las probabilidades.
 
@@ -116,7 +116,7 @@ Por lo tanto, en cada iteración se generan todas las probabilidades de todas la
 
 Con la aplicación de las probabilidades variables aparecen dos fases en la evolución. La primera, muy corta, es una fase de "exploración". La probabilidad de retracción es casi nula ya que la conductancia es mucho mayor a la crítica. El crecimiento hace disminuir las conductancias de las puntas: son los ductos con menos flujo, por lo que se les asigna una conductancia más baja para mantener el volumen. Cuando la conductancia se acerca al valor crítico, la probabilidad de retracción crece. Aquí el sistema entra en una segunda fase, esta estacionaria. Las características del sistema se estabilizan con cierto ruido.
 
-Para las figuras, tomamos como ejemplo un sistema con $K = 1000$ y $\bar{C} = 5\cdot10^{-3}$.
+Para las figuras, tomamos como ejemplo un sistema con $K = 1000$ y $\bar{C} = 5\cdot10^{-3}$.\footnote{Los gráficos muestran, en el fondo, la nube de puntos con los valores reales de la simulación, que tienen mucho ruido. La curva es una media móvil exponencial para ver mejor la evolución de las cantidades.}
 
 \begin{figure}[h!]
 \begin{minipage}{0.5\textwidth}
@@ -132,7 +132,7 @@ Para las figuras, tomamos como ejemplo un sistema con $K = 1000$ y $\bar{C} = 5\
     \label{fig:arbol_est}
 \end{minipage}   
 \end{figure}
-
+\newpage
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.8\textwidth]{graficos_inst/N_vs_tiempo.png}
@@ -149,7 +149,7 @@ Para las figuras, tomamos como ejemplo un sistema con $K = 1000$ y $\bar{C} = 5\
 \end{figure}
 
 La evolución de las probabilidades refleja las fases, mostrando la dominancia de una u otra acción.
-
+\newpage
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.8\textwidth]{graficos_inst/probs_vs_tiempo.png}
@@ -157,17 +157,30 @@ La evolución de las probabilidades refleja las fases, mostrando la dominancia d
     \label{fig:evolucion_probabilidades}
 \end{figure}
 
-Finalmente, la conductancia promedio de las puntas converge con el tiempo hacia la conductancia crítica.
+La probabilidad de retracción parece converger hacia $0.6$, mientras que la de crecimiento y bifurcación converge a $0.2$. Esto es esperable:
+para estar en equilibrio, la retracción debe compensar tanto el crecimiento como la bifurcación. Pensando en términos de unidades ($l_0$ en promedio) crecidas o retraídas,
+tenemos: $p_0 \rightarrow -1$, $p_1 \rightarrow +1$, $p_2 \rightarrow +2$. Sin embargo, como el crecimiento y la bifurcación ocurren a la misma tasa $p_1=p_2$, podemos verlo como un proceso
+que lleva a un crecimiento de 3: $p_{1,2} \rightarrow +3$. Por lo tanto, para que la retracción compense al crecimiento, es necesario que $p_{0,eq} = 3p_{1,2,eq}$. Como las tres tasas suman 1, 
+los únicos valores posibles en el equilibrio son los que muestran las simulaciones: $p_{0,eq}=0.6$ y $p_{1,eq}=p_{2,eq}=0.2$
 
+% \vspace{-30pt}
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\textwidth]{graficos_inst/Cij_vs_tiempo.png}
-    \caption{Evolución temporal de la conductancia.}
+    \includegraphics[width=0.7\textwidth]{graficos_inst/Cij_vs_tiempo.png}
+    \caption{Evolución temporal de la conductancia promedio de las puntas.}
     \label{fig:evolucion_conductancia}
 \end{figure}
+Finalmente, la conductancia promedio de las puntas converge con el tiempo (Fig. \ref{fig:evolucion_conductancia}).
+
+El hecho de que las probabilidades lleguen a un equilibrio demuestra que la conductancia de las puntas debe converger: Dado que $p_0 = e^{-C_{ij}/\bar C}$, tenemos: 
+$$ C_{ij,eq} = -\ln(p_{0,eq})\bar C = \ln(3/2)\bar C $$
+Se espera entonces que la conductancia converga hacia esto. Sin embargo, parece hacerlo hacia la conductancia crítica, lo que no es consistente con la teoría. 
 
 Todos los gráficos tienen unos peaks comunes, que corresponden a fuertes retracciones del árbol. Estos ocurren cuando el primer ducto (o uno de los más antiguos) se vuelve una punta debido a retracciones previas. Al tener un largo considerable, su conductancia es muy baja, lo que aumenta drásticamente su probabilidad de retracción ($p_0 \approx 1$). El ducto se retrae hasta alcanzar una conductancia mayor, momento en que se bifurca en dos pequeños ductos con alta conductancia, causando los picos observados en conductancia promedio y probabilidad de crecimiento.
-\newpage
+
+Esto es un artefacto causado por la adaptación instantánea del sistema: La bifurcación le hereda una conductancia escalada al largo, pero igualmente baja, a los ductos hijos, pero 
+es optimizada instantáneamente dándoles una conductancia alta. Se esperaría, en un sistema más realista, que estas situaciones lleven a la muerte del sistema debido al tiempo de adaptación.
+
 \subsection{Tamaño máximo}
 
 Veamos primero cómo varía el tamaño máximo del árbol con los parámetros. Rápidamente encontramos una relación muy clara entre el tamaño máximo y la razón $\frac{K}{\bar{C}}$ (Fig. \ref{fig:max_vs_KC}).
@@ -179,7 +192,7 @@ Veamos primero cómo varía el tamaño máximo del árbol con los parámetros. R
     \label{fig:max_vs_KC}
 \end{figure}
 
-El tamaño máximo del sistema escala como potencia de esta razón, con exponente $\simeq 0.4$. El coeficiente multiplicativo no parece depender del flujo $q_0$, pero sí de $l_0$.
+El tamaño máximo del sistema escala como potencia de esta razón, con exponente $\simeq 0.4$. El coeficiente delante de la potencia no parece depender del flujo $q_0$, pero sí de $l_0$.
 
 \subsection{Fase de exploración y Cambio de fase}
 
@@ -226,7 +239,7 @@ Y encontramos, efectivamente:
 
 ¡La ley se cumple directamente!
 
-Para estudiarlo en el modelo, vemos como evoluciona el valor promedio de $\frac{r_0^3}{r_1^3+r_2^3}$.
+Para estudiarlo en el modelo, vemos como evoluciona el valor promedio de $\frac{r_0^3}{r_1^3+r_2^3}$ (Fig. \ref{fig:murray_feo}) .
 
 \begin{figure}[h!]
     \centering
@@ -245,7 +258,7 @@ Como los cubos de los radios son proporcionales a los flujos: $r_0^3 < r_1^3 + r
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\textwidth]{graficos_inst/murray_lindo.png}
+    \includegraphics[width=0.75\textwidth]{graficos_inst/murray_lindo.png}
     \caption{Ley de Murray con flujo instantáneo.}
     \label{fig:murray_lindo}
 \end{figure}

@@ -228,7 +228,7 @@ def positive_noise(N, mu, sigma=1):
         return result[0]
     return np.array(result[:N])
 
-
+# SIMULACION
 def sim(K=15000,
         q0=1,
         l0=1,
@@ -497,7 +497,6 @@ def save_sim():
     print(f"Saving as: {name}")
     with open(name, "wb") as f:
         pickle.dump(data, f)
-save_sim()
 def parallel_sim(q, kwargs):
     data = sim(**kwargs)
     q.put(data)
@@ -600,5 +599,7 @@ def gen_K_C():
         pickle.dump(sims, f)
 
 #gen_K_C()
+#save_sim()
 
+# Ruido de notificación al final de la simulación
 print("\a")
